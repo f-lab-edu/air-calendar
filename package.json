@@ -1,0 +1,8 @@
+{
+  "name": "airbnb-calendar",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/f-lab-edu/airbnb-calendar.git",
+  "author": "herekim <khere220@gmail.com>",
+  "license": "MIT"
+}
