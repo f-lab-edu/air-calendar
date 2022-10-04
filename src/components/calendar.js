@@ -9,7 +9,7 @@ class MainCalendar extends HTMLElement {
   }
 
   render() {
-    this.shadow.innerHTML = `<p>hello web component</p>` // shadowRoot에는 innerHTML, DOM method 사용 가능
+    this.shadow.innerHTML = `<p></p>` // shadowRoot에는 innerHTML, DOM method 사용 가능
   }
 }
 

@@ -1,0 +1,33 @@
+.header-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 80px;
+  border-bottom: 1px solid #dddddd;
+}
+.header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  height: 20px;
+  padding: 10px 20px;
+  border: 1px solid #dddddd;
+  border-radius: 20px;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
+}
+button {
+  margin: 0;
+  font-size: 14px;
+  border: none;
+  background: none;
+}
+button:hover {
+  cursor: pointer;
+}
+.divider {
+  margin: 0;
+  width: 1px;
+  height: 100%;
+  background-color: black;
+}
