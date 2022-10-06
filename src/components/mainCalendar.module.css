@@ -1,12 +1,13 @@
 main {
   display: flex;
   gap: 20px;
+  box-sizing: border-box;
 }
 
 .main-calendar {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   width: 300px;
   height: 300px;
   background-color: white;
@@ -19,14 +20,47 @@ main {
   padding: 20px 0;
 }
 
+.calendar-week,
+.next-calendar-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  padding-bottom: 10px;
+  font-size: 12px;
+  color: gray;
+}
+
+.calendar-week-day {
+  display: flex;
+  justify-content: center;
+}
+
 .calendar-days,
 .next-calendar-days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
 }
 
-.calendar-day {
+.calendar-day,
+.calendar-day-none {
+  cursor: pointer;
+  /* background-color: #dddddd; */
+}
+
+.day-hover {
   display: flex;
   justify-content: center;
+  align-items: center;
   padding: 10px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+}
+
+.day-hover.active {
+  background-color: black;
+  color: white;
+}
+
+.day-hover:hover {
+  border: 2px solid black;
+  border-radius: 50%;
 }
