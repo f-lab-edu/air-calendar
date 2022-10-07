@@ -1,6 +1,7 @@
 const calendar = document.createElement('template')
 calendar.innerHTML = `
   <main>
+    <section class="selected-date"></section>
     <section class="main-calendar">
       <article class="calendar-month"></article>
       <article class="calendar-week"></article>
@@ -19,6 +20,15 @@ class MainCalendar extends HTMLElement {
     super()
     this.attachShadow({ mode: 'open' })
     this.shadowRoot.append(calendar.content.cloneNode(true))
+
+    this.date = new Date()
+    this.nextDate = new Date(this.date.getFullYear(), this.date.getMonth() + 1)
+
+    this.startDate = null
+    this.endDate = null
+
+    this.selectedDate = null
+
     this.render()
   }
 
@@ -59,26 +69,14 @@ class MainCalendar extends HTMLElement {
       .join('')
   }
 
-  getCalendar() {
-    const date = new Date()
-    const nextDate = new Date(date.getFullYear(), date.getMonth() + 1)
+  getCalendar(date, nextDate) {
+    this.shadowRoot.querySelector('.calendar-month').textContent = `${this.getYear(date)}년 ${this.getMonth(date)}월`
+    this.shadowRoot.querySelector('.next-calendar-month').textContent = `${this.getYear(nextDate)}년 ${this.getMonth(
+      nextDate,
+    )}월`
 
-    const calendarMonth = this.shadowRoot.querySelector('.calendar-month')
-    const calendarNextMonth = this.shadowRoot.querySelector('.next-calendar-month')
-
-    calendarMonth.textContent = `${this.getYear(date)}년 ${this.getMonth(date)}월`
-    calendarNextMonth.textContent = `${this.getYear(nextDate)}년 ${this.getMonth(nextDate)}월`
-
-    const calendarWeek = this.shadowRoot.querySelector('.calendar-week')
-    const nextCalendarWeek = this.shadowRoot.querySelector('.next-calendar-week')
-
-    const dayOfWeeInnerHTML = this.getDayOfWeekInnerHTML()
-    const nextDayOfWeeInnerHTML = this.getDayOfWeekInnerHTML()
-    calendarWeek.innerHTML = dayOfWeeInnerHTML
-    nextCalendarWeek.innerHTML = nextDayOfWeeInnerHTML
-
-    const calendarDay = this.shadowRoot.querySelector('.calendar-days')
-    const calendarNextDay = this.shadowRoot.querySelector('.next-calendar-days')
+    this.shadowRoot.querySelector('.calendar-week').innerHTML = this.getDayOfWeekInnerHTML()
+    this.shadowRoot.querySelector('.next-calendar-week').innerHTML = this.getDayOfWeekInnerHTML()
 
     const numberOfDays = this.getNumberOfDays(this.getYear(date), this.getMonth(date))
     const nextNumberOfDays = this.getNumberOfDays(this.getYear(nextDate), this.getMonth(nextDate))
@@ -86,11 +84,50 @@ class MainCalendar extends HTMLElement {
     const monthDates = this.getDayOfMonth(numberOfDays, date)
     const nextMonthDates = this.getDayOfMonth(nextNumberOfDays, nextDate)
 
-    const dayOfMonthInnerHTML = this.getDayOfMonthInnerHTML(monthDates)
-    const nextDayOfMonthInnerHTML = this.getDayOfMonthInnerHTML(nextMonthDates)
+    this.shadowRoot.querySelector('.calendar-days').innerHTML = this.getDayOfMonthInnerHTML(monthDates)
+    this.shadowRoot.querySelector('.next-calendar-days').innerHTML = this.getDayOfMonthInnerHTML(nextMonthDates)
+  }
 
-    calendarDay.innerHTML = dayOfMonthInnerHTML
-    calendarNextDay.innerHTML = nextDayOfMonthInnerHTML
+  setCalendar() {}
+
+  selectDay() {
+    const resetClassName = () => {
+      this.shadowRoot.querySelectorAll('.day-hover.active').forEach((e) => {
+        e.className = 'day-hover'
+      })
+    }
+    const selectedDate = (calendar, date) => {
+      if (calendar === 'left') {
+        this.selectedDate = new Date(this.date.getFullYear(), this.date.getMonth(), Number(date))
+        this.shadowRoot.querySelector('.selected-date').textContent = `${
+          this.selectedDate.getMonth() + 1
+        }월 ${this.selectedDate.getDate()}`
+      }
+      if (calendar === 'right') {
+        this.selectedDate = new Date(this.nextDate.getFullYear(), this.nextDate.getMonth(), Number(date))
+        this.shadowRoot.querySelector('.selected-date').textContent = `${
+          this.selectedDate.getMonth() + 1
+        }월 ${this.selectedDate.getDate()}`
+      }
+    }
+    const setActiveClassName = (calendar, event) => {
+      event.addEventListener('click', (event) => {
+        resetClassName()
+        event.target.className += ' active'
+        selectedDate(calendar, event.target.textContent)
+      })
+    }
+    this.shadowRoot.querySelectorAll('.calendar-days .day-hover').forEach((event) => {
+      setActiveClassName('left', event)
+    })
+
+    this.shadowRoot.querySelectorAll('.next-calendar-days .day-hover').forEach((event) => {
+      setActiveClassName('right', event)
+    })
+  }
+
+  connectedCallback() {
+    this.selectDay()
   }
 
   render() {
@@ -99,7 +136,7 @@ class MainCalendar extends HTMLElement {
     linkElem.setAttribute('href', '../src/components/mainCalendar.module.css')
     this.shadowRoot.append(linkElem)
 
-    this.getCalendar()
+    this.getCalendar(this.date, this.nextDate)
   }
 }
 
