@@ -1,7 +1,30 @@
+.calendar-wrapper {
+  /* display: flex;
+  flex-direction: column;
+  justify-content: start;
+  height: 100%; */
+}
+
 main {
   display: flex;
   gap: 20px;
   box-sizing: border-box;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: center;
+  height: 40px;
+  padding: 40px 0 20px 0;
+}
+
+.calendar-check {
+  width: 100px;
+  text-align: center;
+}
+
+.start-date {
+  /* width: 100px; */
 }
 
 .main-calendar {
@@ -46,6 +69,10 @@ main {
   /* background-color: #dddddd; */
 }
 
+.calendar-day.active {
+  background-color: #f2f0e7;
+}
+
 .day-hover {
   display: flex;
   justify-content: center;
@@ -55,7 +82,9 @@ main {
   border-radius: 50%;
 }
 
-.day-hover.active {
+.day-hover.active,
+.day-hover.start-active,
+.day-hover.end-active {
   background-color: black;
   color: white;
 }

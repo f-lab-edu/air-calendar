@@ -1,18 +1,29 @@
 const calendar = document.createElement('template')
 calendar.innerHTML = `
-  <main>
-    <section class="selected-date"></section>
-    <section class="main-calendar">
-      <article class="calendar-month"></article>
-      <article class="calendar-week"></article>
-      <article class="calendar-days"></article>
+  <div>
+    <section class="calendar-header">
+      <div class="calendar-check">
+        <div>체크인</div>
+        <div class="start-date">날짜입력</div>
+      </div>
+      <div class="calendar-check">
+        <div>체크아웃</div>
+        <div class="end-date">날짜입력</div>
+      </div>
     </section>
-    <secrion class="main-calendar">
-      <article class="next-calendar-month"></article>
-      <article class="next-calendar-week"></article>
-      <article class="next-calendar-days"></article>
-    </secrion>
-  </main>
+    <main> 
+      <section class="main-calendar">
+        <article class="calendar-month"></article>
+        <article class="calendar-week"></article>
+        <article class="calendar-days"></article>
+      </section>
+      <secrion class="main-calendar">
+        <article class="next-calendar-month"></article>
+        <article class="next-calendar-week"></article>
+        <article class="next-calendar-days"></article>
+      </secrion>
+    </main>
+  </div>
 `
 
 class MainCalendar extends HTMLElement {
@@ -90,31 +101,62 @@ class MainCalendar extends HTMLElement {
 
   setCalendar() {}
 
+  resetAllClassName = (prev, next) => {
+    this.shadowRoot.querySelectorAll(prev).forEach((e) => {
+      e.className = next
+    })
+  }
+
   selectDay() {
-    const resetClassName = () => {
-      this.shadowRoot.querySelectorAll('.day-hover.active').forEach((e) => {
-        e.className = 'day-hover'
-      })
-    }
-    const selectedDate = (calendar, date) => {
-      if (calendar === 'left') {
-        this.selectedDate = new Date(this.date.getFullYear(), this.date.getMonth(), Number(date))
-        this.shadowRoot.querySelector('.selected-date').textContent = `${
-          this.selectedDate.getMonth() + 1
-        }월 ${this.selectedDate.getDate()}`
+    const setDate = () => {}
+    const selectedDate = (calendar, event) => {
+      if (this.startDate && this.endDate) {
+        // startDate보다 전이면 호버, 셀렉트 삭제 후 startDate 업데이트
+        // endDate보다 뒤이면 endDate와 호버만 업데이트
+        return
       }
-      if (calendar === 'right') {
-        this.selectedDate = new Date(this.nextDate.getFullYear(), this.nextDate.getMonth(), Number(date))
-        this.shadowRoot.querySelector('.selected-date').textContent = `${
-          this.selectedDate.getMonth() + 1
-        }월 ${this.selectedDate.getDate()}`
+      if (this.startDate) {
+        // startDate보다 뒤 선택하면 startDate 업데이트
+        event.target.className += ' end-active'
+        this.endDate =
+          calendar === 'left'
+            ? new Date(this.date.getFullYear(), this.date.getMonth(), Number(event.target.textContent))
+            : new Date(this.nextDate.getFullYear(), this.nextDate.getMonth(), Number(event.target.textContent))
+
+        this.shadowRoot.querySelector('.end-date').textContent = `${
+          this.endDate.getMonth() + 1
+        }월 ${this.endDate.getDate()}일`
+        this.shadowRoot.querySelectorAll('.calendar-days .calendar-day').forEach((event) => {
+          const hoverDate = new Date(this.date.getFullYear(), this.date.getMonth(), Number(event.textContent))
+          if (this.startDate <= hoverDate && hoverDate <= this.endDate) {
+            event.className += ' active'
+          }
+        })
+        this.shadowRoot.querySelectorAll('.next-calendar-days .calendar-day').forEach((event) => {})
+
+        return
+      }
+      if (!this.startDate) {
+        // startDate만 설정
+        event.target.className += ' start-active'
+        this.startDate =
+          calendar === 'left'
+            ? new Date(this.date.getFullYear(), this.date.getMonth(), Number(event.target.textContent))
+            : new Date(this.nextDate.getFullYear(), this.nextDate.getMonth(), Number(event.target.textContent))
+
+        this.shadowRoot.querySelector('.start-date').textContent = `${
+          this.startDate.getMonth() + 1
+        }월 ${this.startDate.getDate()}일`
+
+        return
       }
     }
     const setActiveClassName = (calendar, event) => {
       event.addEventListener('click', (event) => {
-        resetClassName()
-        event.target.className += ' active'
-        selectedDate(calendar, event.target.textContent)
+        this.resetAllClassName('.calendar-day.active', 'calendar-day')
+        this.resetAllClassName('.day-hover.active', 'day-hover')
+        // event.target.className += ' active'
+        selectedDate(calendar, event)
       })
     }
     this.shadowRoot.querySelectorAll('.calendar-days .day-hover').forEach((event) => {
@@ -126,8 +168,46 @@ class MainCalendar extends HTMLElement {
     })
   }
 
+  selectPeriod() {
+    const handleMouseOver = (date, event) => {
+      event.addEventListener('mouseover', (event) => {
+        this.selectedDate = new Date(date.getFullYear(), date.getMonth(), Number(event.target.textContent))
+        if (this.startDate !== null && this.startDate < this.selectedDate) {
+          this.onPeriod()
+        }
+      })
+    }
+    this.shadowRoot.querySelectorAll('.calendar-days .day-hover').forEach((event) => {
+      handleMouseOver(this.date, event)
+    })
+    this.shadowRoot.querySelectorAll('.next-calendar-days .day-hover').forEach((event) => {
+      handleMouseOver(this.nextDate, event)
+    })
+  }
+
+  onPeriod() {
+    const handleActive = (date, event) => {
+      if (!this.startDate || !this.endDate) {
+        if (date <= this.selectedDate && this.startDate <= date) {
+          event.className += ' active'
+        } else {
+          event.className = 'calendar-day'
+        }
+      }
+    }
+    this.shadowRoot.querySelectorAll('.calendar-days .calendar-day').forEach((event) => {
+      const hoverDate = new Date(this.date.getFullYear(), this.date.getMonth(), Number(event.textContent))
+      handleActive(hoverDate, event)
+    })
+    this.shadowRoot.querySelectorAll('.next-calendar-days .calendar-day').forEach((event) => {
+      const hoverDate = new Date(this.nextDate.getFullYear(), this.nextDate.getMonth(), Number(event.textContent))
+      handleActive(hoverDate, event)
+    })
+  }
+
   connectedCallback() {
     this.selectDay()
+    this.selectPeriod()
   }
 
   render() {
