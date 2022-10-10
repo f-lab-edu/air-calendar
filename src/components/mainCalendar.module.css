@@ -93,3 +93,10 @@ main {
   border: 2px solid black;
   border-radius: 50%;
 }
+
+.prev,
+.next {
+  height: 60px;
+  background-color: white;
+  border: 0;
+}

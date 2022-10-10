@@ -12,6 +12,7 @@ calendar.innerHTML = `
       </div>
     </section>
     <main> 
+      <button class="prev"><</button>
       <section class="main-calendar">
         <article class="calendar-month"></article>
         <article class="calendar-week"></article>
@@ -22,6 +23,7 @@ calendar.innerHTML = `
         <article class="next-calendar-week"></article>
         <article class="next-calendar-days"></article>
       </secrion>
+      <button class="next">></button>
     </main>
   </div>
 `
@@ -41,14 +43,6 @@ class MainCalendar extends HTMLElement {
     this.selectedDate = null
 
     this.render()
-  }
-
-  getYear(date) {
-    return date.getFullYear()
-  }
-
-  getMonth(date) {
-    return date.getMonth() + 1
   }
 
   getNumberOfDays(year, month) {
@@ -81,16 +75,19 @@ class MainCalendar extends HTMLElement {
   }
 
   getCalendar(date, nextDate) {
-    this.shadowRoot.querySelector('.calendar-month').textContent = `${this.getYear(date)}년 ${this.getMonth(date)}월`
-    this.shadowRoot.querySelector('.next-calendar-month').textContent = `${this.getYear(nextDate)}년 ${this.getMonth(
-      nextDate,
-    )}월`
+    this.date = date
+    this.nextDate = nextDate
+
+    this.shadowRoot.querySelector('.calendar-month').textContent = `${date.getFullYear()}년 ${date.getMonth() + 1}월`
+    this.shadowRoot.querySelector('.next-calendar-month').textContent = `${nextDate.getFullYear()}년 ${
+      nextDate.getMonth() + 1
+    }월`
 
     this.shadowRoot.querySelector('.calendar-week').innerHTML = this.getDayOfWeekInnerHTML()
     this.shadowRoot.querySelector('.next-calendar-week').innerHTML = this.getDayOfWeekInnerHTML()
 
-    const numberOfDays = this.getNumberOfDays(this.getYear(date), this.getMonth(date))
-    const nextNumberOfDays = this.getNumberOfDays(this.getYear(nextDate), this.getMonth(nextDate))
+    const numberOfDays = this.getNumberOfDays(date.getFullYear(), date.getMonth())
+    const nextNumberOfDays = this.getNumberOfDays(date.getFullYear(), nextDate.getMonth())
 
     const monthDates = this.getDayOfMonth(numberOfDays, date)
     const nextMonthDates = this.getDayOfMonth(nextNumberOfDays, nextDate)
@@ -99,8 +96,6 @@ class MainCalendar extends HTMLElement {
     this.shadowRoot.querySelector('.next-calendar-days').innerHTML = this.getDayOfMonthInnerHTML(nextMonthDates)
   }
 
-  setCalendar() {}
-
   resetAllClassName = (prev, next) => {
     this.shadowRoot.querySelectorAll(prev).forEach((e) => {
       e.className = next
@@ -108,15 +103,43 @@ class MainCalendar extends HTMLElement {
   }
 
   selectDay() {
-    const setDate = () => {}
     const selectedDate = (calendar, event) => {
       if (this.startDate && this.endDate) {
-        // startDate보다 전이면 호버, 셀렉트 삭제 후 startDate 업데이트
-        // endDate보다 뒤이면 endDate와 호버만 업데이트
-        return
-      }
-      if (this.startDate) {
-        // startDate보다 뒤 선택하면 startDate 업데이트
+        this.resetAllClassName('.day-hover.start-active', 'day-hover')
+        this.resetAllClassName('.day-hover.end-active', 'day-hover')
+
+        event.target.className += ' start-active'
+
+        this.startDate =
+          calendar === 'left'
+            ? new Date(this.date.getFullYear(), this.date.getMonth(), Number(event.target.textContent))
+            : new Date(this.nextDate.getFullYear(), this.nextDate.getMonth(), Number(event.target.textContent))
+        this.endDate = null
+
+        this.shadowRoot.querySelector('.start-date').textContent = `${
+          this.startDate.getMonth() + 1
+        }월 ${this.startDate.getDate()}일`
+        this.shadowRoot.querySelector('.end-date').textContent = `날짜입력`
+      } else if (this.startDate && !this.endDate) {
+        const selectedDate =
+          calendar === 'left'
+            ? new Date(this.date.getFullYear(), this.date.getMonth(), Number(event.target.textContent))
+            : new Date(this.nextDate.getFullYear(), this.nextDate.getMonth(), Number(event.target.textContent))
+
+        if (selectedDate < this.startDate) {
+          this.resetAllClassName('.day-hover.start-active', 'day-hover')
+          this.resetAllClassName('.day-hover.end-active', 'day-hover')
+          event.target.className += ' start-active'
+          this.startDate = new Date(
+            selectedDate.getFullYear(),
+            selectedDate.getMonth(),
+            Number(event.target.textContent),
+          )
+          this.shadowRoot.querySelector('.start-date').textContent = `${
+            this.startDate.getMonth() + 1
+          }월 ${this.startDate.getDate()}일`
+        }
+
         event.target.className += ' end-active'
         this.endDate =
           calendar === 'left'
@@ -126,18 +149,21 @@ class MainCalendar extends HTMLElement {
         this.shadowRoot.querySelector('.end-date').textContent = `${
           this.endDate.getMonth() + 1
         }월 ${this.endDate.getDate()}일`
+
         this.shadowRoot.querySelectorAll('.calendar-days .calendar-day').forEach((event) => {
           const hoverDate = new Date(this.date.getFullYear(), this.date.getMonth(), Number(event.textContent))
+
           if (this.startDate <= hoverDate && hoverDate <= this.endDate) {
             event.className += ' active'
           }
         })
-        this.shadowRoot.querySelectorAll('.next-calendar-days .calendar-day').forEach((event) => {})
-
-        return
-      }
-      if (!this.startDate) {
-        // startDate만 설정
+        this.shadowRoot.querySelectorAll('.next-calendar-days .calendar-day').forEach((event) => {
+          const hoverDate = new Date(this.nextDate.getFullYear(), this.nextDate.getMonth(), Number(event.textContent))
+          if (this.startDate <= hoverDate && hoverDate <= this.endDate) {
+            event.className += ' active'
+          }
+        })
+      } else if (!this.startDate) {
         event.target.className += ' start-active'
         this.startDate =
           calendar === 'left'
@@ -147,15 +173,12 @@ class MainCalendar extends HTMLElement {
         this.shadowRoot.querySelector('.start-date').textContent = `${
           this.startDate.getMonth() + 1
         }월 ${this.startDate.getDate()}일`
-
-        return
       }
     }
+
     const setActiveClassName = (calendar, event) => {
       event.addEventListener('click', (event) => {
         this.resetAllClassName('.calendar-day.active', 'calendar-day')
-        this.resetAllClassName('.day-hover.active', 'day-hover')
-        // event.target.className += ' active'
         selectedDate(calendar, event)
       })
     }
@@ -205,7 +228,29 @@ class MainCalendar extends HTMLElement {
     })
   }
 
+  prev() {
+    this.shadowRoot.querySelector('.prev').addEventListener('click', () => {
+      this.date = new Date(this.date.getFullYear(), this.date.getMonth() - 1)
+      this.nextDate = new Date(this.nextDate.getFullYear(), this.nextDate.getMonth() - 1)
+      this.getCalendar(this.date, this.nextDate)
+      this.selectDay()
+      this.selectPeriod()
+    })
+  }
+
+  next() {
+    this.shadowRoot.querySelector('.next').addEventListener('click', () => {
+      this.date = new Date(this.date.getFullYear(), this.date.getMonth() + 1)
+      this.nextDate = new Date(this.nextDate.getFullYear(), this.nextDate.getMonth() + 1)
+      this.getCalendar(this.date, this.nextDate)
+      this.selectDay()
+      this.selectPeriod()
+    })
+  }
+
   connectedCallback() {
+    this.prev()
+    this.next()
     this.selectDay()
     this.selectPeriod()
   }
