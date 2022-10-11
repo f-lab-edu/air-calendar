@@ -73,7 +73,7 @@ main {
   background-color: #f2f0e7;
 }
 
-.day-hover {
+.select-day {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -82,14 +82,13 @@ main {
   border-radius: 50%;
 }
 
-.day-hover.active,
-.day-hover.start-active,
-.day-hover.end-active {
+.select-day.start-active,
+.select-day.end-active {
   background-color: black;
   color: white;
 }
 
-.day-hover:hover {
+.select-day:hover {
   border: 2px solid black;
   border-radius: 50%;
 }
