@@ -1,6 +1,6 @@
 //Todo: template 분리
-const calendar = document.createElement('template')
-calendar.innerHTML = `
+const header = document.createElement('template')
+header.innerHTML = `
   <header class="header-wrapper">
     <section class="header">
       <button>어디든지</button>
@@ -16,18 +16,19 @@ calendar.innerHTML = `
 class MainHeader extends HTMLElement {
   constructor() {
     super()
-    this.attachShadow({ mode: 'open' }).append(calendar.content.cloneNode(true))
+    this.attachShadow({ mode: 'open' })
+    this.shadowRoot.append(header.content.cloneNode(true))
     this.render()
     this.calendarOpen = false
   }
 
   handleClick() {
     if (this.calendarOpen) {
-      const mainCalendar = document.querySelector('main-calendar')
+      const mainCalendar = document.querySelector('calendar-modal')
       mainCalendar.remove()
       this.calendarOpen = false
     } else {
-      const mainCalendar = document.createElement('main-calendar')
+      const mainCalendar = document.createElement('calendar-modal')
       document.body.append(mainCalendar)
       this.calendarOpen = true
     }
